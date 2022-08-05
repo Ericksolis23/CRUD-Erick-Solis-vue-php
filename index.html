@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@5.x/css/materialdesignicons.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10.0.2/dist/sweetalert2.min.css">  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+</head>
+<body>
+  <div id="app">
+    <v-app>
+      <v-main>      
+        <v-card class="mx-auto mt-5" max-width="1200">
+        
+        
+        <v-btn rounded color="red accent-2" @click="formNuevo()">Crear</v-btn>    
+
+        
+        <v-simple-table class="mt-5">
+            <template v-slot:default>
+                <thead>
+                    <tr class="light-blue darken-2">
+                        <th class="white--text">ID PASTEL</th>
+                        <th class="white--text">NOMBRE</th>
+                        <th class="white--text">DESCRIPCION</th>
+                        <th class="white--text">PREPARADO POR</th>
+                        <th class="white--text">FECHA DE CREACION</th>
+                        <th class="white--text">FECHA DE VENCIMIENTO</th>
+                        <th class="white--text text-center">ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="pastel in pastel" :key="pastel.id_pastel">
+                    <td>{{ pastel.id_pastel }}</td>
+                    <td>{{ pastel.Nombre }}</td>
+                    <td>{{ pastel.Descripcion }}</td>
+                    <td>{{ pastel.Preparado_por }}</td>
+                    <td>{{ pastel.Fecha_creacion }}</td>
+                    <td>{{ pastel.Fecha_vencimiento }}</td>
+                    <td>
+                        <v-btn class="teal accent-4" dark @click="formEditar(pastel.id_pastel, pastel.Nombre, pastel.Preparado_por, pastel.Fecha_creacion, pastel.Fecha_vencimiento)">Editar</v-btn>
+                        <v-btn class="error" dark @click="borrar(pastel.id_pastel)">Borrar</v-btn>
+                    </td>
+                    </tr>
+                </tbody>
+            </template>
+        </v-simple-table>
+        </v-card>        
+
+      
+      <v-dialog v-model="dialog" max-width="500">        
+        <v-card>
+          <v-card-title class="blue-grey darken-1 white--text">Pastel</v-card-title>    
+          <v-card-text>            
+            <v-form>             
+              <v-container>
+                <v-row>
+                  <input v-model="pastel.id_pastel" hidden></input>
+                  <v-col cols="12" md="4">
+                    <v-text-field v-model="pastel.id_pastel" label="ID" solo required>{{pastel.id_pastel}}</v-text-field>
+                  </v-col>
+                  <input v-model="pastel.Nombre" hidden></input>
+                  <v-col cols="12" md="4">
+                    <v-text-field v-model="pastel.Nombre" label="Nombre" solo required>{{pastel.Nombre}}</v-text-field>
+                  </v-col>
+                  <v-col cols="12" md="4">
+                    <v-text-field v-model="pastel.Descripcion" label="Descripcion" type="text" solo required></v-text-field>
+                  </v-col>
+                  <v-col cols="12" md="4">
+                    <v-text-field v-model="pastel.Preparado_por" label="Prep. Por" type="text" solo required></v-text-field>
+                  </v-col>
+                  <input v-model="pastel.Fecha_creacion" hidden></input>
+                  <v-col cols="12" md="4">
+                    <v-text-field v-model="pastel.Fecha_creacion" label="F. Creacion" solo required>{{pastel.Fecha_creacion}}</v-text-field>
+                  </v-col>
+                  <input v-model="pastel.Fecha_vencimiento" hidden></input>
+                  <v-col cols="12" md="4">
+                    <v-text-field v-model="pastel.Fecha_vencimiento" label="F. Vencimiento" solo required>{{pastel.Fecha_vencimiento}}</v-text-field>
+                  </v-col>
+                </v-row>
+              </v-container>            
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn @click="dialog=false">Cancelar</v-btn>
+            <v-btn @click="guardar()" type="submit" color="indigo" dark>Guardar</v-btn>
+          </v-card-actions>
+          </v-form>
+        </v-card>
+      </v-dialog>
+
+      </v-main>
+    </v-app>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.20.0/axios.min.js" integrity="sha512-quHCp3WbBNkwLfYUMd+KwBAgpVukJu5MncuQaWXgCrfgcxCJAq/fo+oqrRKOj+UKEmyMCG3tb8RB63W+EmrOBg==" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.0.2/dist/sweetalert2.all.min.js"></script>
+
+  <script>
+  var url = "http://localhost/crud_vuetify_2020/crud.php";
+    new Vue({
+      el: '#app',
+      vuetify: new Vuetify(),
+       data () {
+        return {            
+            pastel: [],
+            dialog: false,
+            operacion: '',
+            
+            pastel:{
+                id_pastel: null,
+                Nombre:'',
+                Descripcion:'',
+                Preparado_por:'',
+                Fecha_creacion:'',
+                Fecha_vencimiento:''
+            }          
+        }
+       },
+       created(){       
+            this.mostrar()
+       },  
+       methods:{        
+
+            
+            mostrar:function(){
+              axios.post(url,{opcion:1})
+              .then(response =>{
+                this.pastel = response.data;                   
+              })
+            },
+            crear:function(){                
+                axios.post(url, {opcion:2, nombre:this.pastel.Nombre, descripcion:this.pastel.Descripcion, preparado_por:this.pastel.Preparado_por, fecha_creacion:this.pastel.Fecha_creacion, fecha_vencimiento:this.pastel.Fecha_vencimiento})
+                .then(response =>{
+                  this.mostrar();
+                });   
+                this.pastel.Nombre="";
+                this.pastel.Descripcion="";
+                this.pastel.Preparado_por="";
+            },  
+            editar:function(id_pastel, Nombre, Descripcion, Preparado_por, Fecha_creacion, Fecha_vencimiento){
+              axios.post(url, {opcion:3, nombre:this.pastel.Nombre, descripcion:this.pastel.Descripcion, preparado_por:this.pastel.Preparado_por, fecha_creacion:this.pastel.Fecha_creacion, fecha_vencimiento:this.pastel.Fecha_vencimiento})
+                  .then(response =>{
+                    this.mostrar();
+              }); 
+            },             
+            borrar:function(id_pastel){
+             Swal.fire({
+                title: '¿Confirma eliminar el registro?',   
+                confirmButtonText: `Confirmar`,                  
+                showCancelButton: true,                          
+              }).then((result) => {                
+                if (result.isConfirmed) {      
+                      axios.post(url, {opcion:4, id_pastel:id_pastel}).then(response =>{           
+                          this.mostrar();
+                       });      
+                  Swal.fire('¡Eliminado!', '', 'success')
+                } else if (result.isDenied) {                  
+                }
+              });              
+            },
+
+            
+            guardar:function(){
+              if(this.operacion=='crear'){
+                this.crear();                
+              }
+              if(this.operacion=='editar'){ 
+                this.editar();                           
+              }
+              this.dialog=false;                        
+            }, 
+            formNuevo:function () {              
+              this.dialog=true;
+              this.operacion='crear';
+              this.pastel.id_pastel=''; 
+              this.pastel.Nombre='';                           
+              this.pastel.Descripcion='';
+              this.pastel.Preparado_por='';
+              this.pastel.Fecha_creacion='';
+              this.pastel.Fecha_vencimiento='';
+            },
+            formEditar:function(id, descripcion, precio, stock){                              
+              //capturamos los datos del registro seleccionado y los mostramos en el formulario
+              this.pastel.id_pastel=''; 
+              this.pastel.Nombre='';                           
+              this.pastel.Descripcion='';
+              this.pastel.Preparado_por='';
+              this.pastel.Fecha_creacion='';
+              this.pastel.Fecha_vencimiento='';                      
+              this.dialog=true;                            
+              this.operacion='editar';
+            }
+       }      
+    });
+  </script>
+</body>
+</html> 
